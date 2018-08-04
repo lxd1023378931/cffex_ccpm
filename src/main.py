@@ -1,14 +1,17 @@
-from src.config import Config
-from src.request import Request
+from config import Config
+from request import Request
 from xml.dom.minidom import parse
-from src.utqhjytj import utQHJYTJ
+from utqhjytj import utQHJYTJ
+from sqlserverjdbc import SqlServerJDBC
 import xml.dom.minidom
 import time
+
 
 class Main(object):
 
     __config = None
     __request = None
+    __sqlserverJDBC = None
     __url = ''
     __type = ''
     __yyyyMM = ''
@@ -18,6 +21,7 @@ class Main(object):
     def __init__(self, yyyymm, dd):
         self.__config = Config()
         self.__request = Request()
+        self.__sqlserverJDBC = SqlServerJDBC()
         self.__url = self.__config.get(Config.req_section, 'url')
         self.__type = self.__config.get(Config.req_section, 'type')
         self.__yyyyMM = yyyymm
@@ -25,15 +29,19 @@ class Main(object):
 
     def main(self):
         typeList = self.__type.strip(',').split(',')
-        print(typeList)
         url = self.__url.replace("YYYYMM", self.__yyyyMM, 1).replace("DD", self.__dd, 1)
         for type in typeList:
-            print(url.replace("TYPE", type, 1))
             response = self.__request.open(url.replace("TYPE", type, 1))
             if(response.status_code == 200):
-                self.__xml(response.content)
+                return self.__xml(response.content)
+            else:
+                return "请求失败！"
     def __xml(self,strs):
-        domTree = xml.dom.minidom.parseString(strs)
+        self.__dataList.clear()
+        try:
+            domTree = xml.dom.minidom.parseString(strs)
+        except:
+            return "获取数据失败！"
         element = domTree.documentElement
         datas = element.getElementsByTagName("data")
         for data in datas:
@@ -61,7 +69,9 @@ class Main(object):
             utQ.ccl = volume if(datatypeid != 0) else None
             utQ.zjl = varvolume
             utQ.gkbz = 0
-            utQ.xgsj = time.strftime("%H:%M:%S", time.localtime())+'.0'
-            utQ.fbsj = time.strftime("%H:%M:%S", time.localtime())+'.0'
+            utQ.xgsj = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+            utQ.fbsj = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
             self.__dataList.append(utQ)
+
+        return self.__sqlserverJDBC.insertUTQ(self.__dataList)

@@ -1,10 +1,51 @@
-from src.main import Main
-import chardet
-Main('201808', '02').main()
-#
-# x = b'\xc4\xfa\xd2\xaa\xb2\xe9\xbf\xb4\xb5\xc4\xcd\xf8\xd2\xb3\xbf\xc9\xc4\xdc\xd2\xd1\xb1\xbb\xc9\xbe\xb3\xfd\xa1\xa2\xc3\xfb\xb3\xc6\xd2\xd1\xb1\xbb\xb8\xfc\xb8\xc4\xa3\xac\xbb\xf2\xd5\xdf\xd4\xdd\xca\xb1\xb2\xbb\xbf\xc9\xd3\xc3\xa1\xa3'
-# a = b'\xcd\xf8\xd2\xb3\xb4\xed\xce\xf3'
-c = b'\xe6\x88\x90\xe4\xba\xa4\xe6\x8c\x81\xe4\xbb\x93\xe6\x8e\x92\xe5\x90\x8d'
-print(chardet.detect(c))
+from main import Main
+import tkinter
+from tkinter import *
+from tkinter import messagebox
 
-print(bytes(c).decode('utf-8'))
+
+def submit():
+    yyyyMM = e_yyyyMM.get()
+    dd = e_dd.get()
+    try:
+        numYYYYMM = int(yyyyMM.strip())
+    except:
+        messagebox.askokcancel('消息框', '请输入六位数年月，如：201808')
+        return
+    if numYYYYMM<100000 or numYYYYMM > 999999:
+        messagebox.askokcancel('消息框', '请输入六位数年月，如：201808')
+        return
+    try:
+        numDD = int(dd.strip())
+    except:
+        messagebox.askokcancel('消息框', '请输入二位数日期，如：08')
+        return
+    if numDD<0 or numDD > 31:
+        messagebox.askokcancel('消息框', '请输入二位数日期，如：08')
+        return
+
+    msg = Main(yyyyMM, dd).main()
+    messagebox.askokcancel('消息框', msg)
+
+
+def center_window(w=500, h=350):
+    ws = root.winfo_screenwidth()
+    hs = root.winfo_screenheight()
+    x = (ws / 2) - (w / 2)
+    y = (hs / 2) - (h / 2)
+    root.geometry("%dx%d+%d+%d" % (w, h, x, y))
+
+
+root = tkinter.Tk(className='成交持仓排名')
+center_window(200, 100)
+l_yyyyMM = Label(root, text='年月：')
+l_yyyyMM.grid(row=0, sticky=W)
+e_yyyyMM = Entry(root)
+e_yyyyMM.grid(row=0, column=1, sticky=E)
+l_dd = Label(root, text='日期：')
+l_dd.grid(row=1, sticky=W)
+e_dd = Entry(root)
+e_dd.grid(row=1, column=1, sticky=E)
+b_submit = Button(root, text='抓取', command=submit)
+b_submit.grid(row=2, column=1, sticky=E)
+root.mainloop()
